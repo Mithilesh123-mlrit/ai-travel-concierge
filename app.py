@@ -7,7 +7,8 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pypdf import PdfReader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
-
+from langchain.agents import create_agent
+from tools.travel_tools import get_weather, web_search
 
 # --------------------------------------------------
 # Load environment variables
@@ -59,6 +60,33 @@ llm = ChatGoogleGenerativeAI(
     google_api_key=api_key
 )
 
+# --------------------------------------------------
+# Travel Agent
+# --------------------------------------------------
+
+tools = [
+    get_weather,
+    web_search
+]
+
+travel_agent = create_agent(
+    model=llm,
+    tools=tools,
+    system_prompt="""
+You are an AI Travel Concierge.
+
+Use get_weather when the user asks about current
+weather or temperature for a city.
+
+Use web_search when the user asks for current
+travel information, tourist attractions, or places to visit.
+
+Choose the appropriate tool automatically.
+
+If a tool cannot find information, explain the problem
+clearly instead of inventing an answer.
+"""
+)
 
 # --------------------------------------------------
 # Document Upload
@@ -250,4 +278,87 @@ Answer:
                 f"Something went wrong: {error}"
             )
 
+# --------------------------------------------------
+# Live Travel Agent
+# --------------------------------------------------
 
+st.divider()
+
+st.subheader("🌍 Live Travel Assistant")
+
+st.write(
+    "Ask about current weather or search for "
+    "travel information from the web."
+)
+
+agent_question = st.text_input(
+    "Ask the Travel Agent:",
+    placeholder="Example: What is the weather in Goa?",
+    key="agent_question"
+)
+
+if st.button(
+    "Ask Travel Agent",
+    key="agent_button"
+):
+
+    if not agent_question.strip():
+
+        st.warning(
+            "Please enter a travel-related question."
+        )
+
+    else:
+
+        try:
+
+            with st.spinner(
+                "Travel Agent is working..."
+            ):
+
+                result = travel_agent.invoke(
+                    {
+                        "messages": [
+                            {
+                                "role": "user",
+                                "content": agent_question
+                            }
+                        ]
+                    }
+                )
+
+                response_content = (
+                    result["messages"][-1].content
+                )
+
+            # Handle Gemini structured responses
+            if isinstance(response_content, list):
+
+                answer_text = ""
+
+                for item in response_content:
+
+                    if (
+                        isinstance(item, dict)
+                        and item.get("type") == "text"
+                    ):
+
+                        answer_text += item.get(
+                            "text",
+                            ""
+                        )
+
+            else:
+
+                answer_text = response_content
+
+            st.subheader("🤖 Agent Response")
+
+            st.write(answer_text)
+
+        except Exception:
+
+            st.error(
+                "The Travel Agent could not complete "
+                "the request. Please try again."
+            )
