@@ -1,4 +1,5 @@
 import requests
+from services.travel_api import search_hotels
 from langchain_core.tools import tool
 from ddgs import DDGS
 
@@ -102,3 +103,35 @@ def web_search(query: str) -> str:
 
     except Exception as error:
         return f"Web search is currently unavailable: {error}"
+@tool
+def hotel_search(
+    location: str,
+    check_in: str,
+    check_out: str,
+    adults: int = 2
+) -> str:
+    """
+    Search for hotels for a destination and travel dates.
+    """
+
+    try:
+        result = search_hotels(
+            location=location,
+            check_in=check_in,
+            check_out=check_out,
+            adults=adults
+        )
+
+        if not result["success"]:
+            return (
+                "Hotel search could not be completed: "
+                + result["error"]
+            )
+
+        return str(result["data"])
+
+    except Exception:
+        return (
+            "Hotel search is currently unavailable. "
+            "Please try again later."
+        )

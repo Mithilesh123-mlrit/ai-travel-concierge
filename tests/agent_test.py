@@ -3,7 +3,11 @@ import os
 from dotenv import load_dotenv
 from langchain.agents import create_agent
 
-from tools.travel_tools import get_weather, web_search
+from tools.travel_tools import (
+    get_weather,
+    web_search,
+    hotel_search
+)
 
 
 # --------------------------------------------------
@@ -21,7 +25,8 @@ api_key = os.getenv("GEMINI_API_KEY")
 
 tools = [
     get_weather,
-    web_search
+    web_search,
+    hotel_search
 ]
 
 agent = create_agent(
@@ -30,16 +35,19 @@ agent = create_agent(
     system_prompt="""
 You are an AI Travel Concierge.
 
-Use get_weather when the user asks about current
-weather or temperature.
+Use get_weather for current weather or temperature.
 
-Use web_search when the user asks about tourist
-attractions, places to visit, or current travel information.
+Use web_search for tourist attractions, places to visit,
+or current travel information.
+
+Use hotel_search when the user asks for hotels and
+provides destination, check-in date, check-out date,
+and number of adults.
 
 Choose the correct tool automatically.
 
-If the required information cannot be found,
-give a clear and friendly response.
+If information cannot be retrieved, explain the issue
+clearly instead of inventing an answer.
 """
 )
 
@@ -122,4 +130,9 @@ run_test(
 run_test(
     "TEST 5: EMPTY QUESTION",
     ""
+)
+
+run_test(
+    "TEST 6: HOTEL SEARCH TOOL",
+    "Find hotels in Goa from 2026-10-10 to 2026-10-12 for 2 adults."
 )
