@@ -20,12 +20,16 @@ AI-powered Travel Concierge built using LLMs, LangChain, RAG, and Streamlit.
 
 - Weather API integration
 - Web search integration
+- Hotel search API integration
 - LangChain tool calling
 - Automatic tool selection
 - Basic error handling
 - Tool testing scripts
 - Agent testing
 - Streamlit agent integration
+- SQLite-based search history
+- Automatic saving of user travel queries
+- AI-based itinerary generation
 
 ## Agent Capabilities
 
@@ -42,3 +46,24 @@ The agent automatically selects the appropriate tool based on the user's request
 **User:** Find tourist attractions in Goa.
 
 **Agent:** Uses the Web Search tool.
+
+### Example 3
+
+**User:** Find hotels in Goa from 2026-10-10 to 2026-10-12 for 2 adults.
+
+**Agent:** Uses the Hotel Search tool.
+
+### Itinerary Generation
+
+Users can generate a basic travel itinerary by providing:
+
+- Destination
+- Number of days
+- Travel interests
+
+The AI generates a day-by-day travel plan with morning, afternoon, and evening activities.
+
+### Search History
+
+The application uses SQLite to store user travel queries and maintain basic search history.
+
