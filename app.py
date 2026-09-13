@@ -8,7 +8,13 @@ from pypdf import PdfReader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.agents import create_agent
-from tools.travel_tools import get_weather, web_search
+from services.itinerary import generate_itinerary
+from database.db import create_tables, save_search
+from tools.travel_tools import (
+    get_weather,
+    web_search,
+    hotel_search
+)
 
 # --------------------------------------------------
 # Load environment variables
@@ -23,7 +29,11 @@ if not api_key:
         api_key = st.secrets["GEMINI_API_KEY"]
     except Exception:
         api_key = None
+# --------------------------------------------------
+# Initialize Database
+# --------------------------------------------------
 
+create_tables()
 # --------------------------------------------------
 # Streamlit page configuration
 # --------------------------------------------------
@@ -66,7 +76,8 @@ llm = ChatGoogleGenerativeAI(
 
 tools = [
     get_weather,
-    web_search
+    web_search,
+    hotel_search
 ]
 
 travel_agent = create_agent(
@@ -326,6 +337,10 @@ if st.button(
                         ]
                     }
                 )
+                save_search(
+    search_type="agent_query",
+    query=agent_question
+)
 
                 response_content = (
                     result["messages"][-1].content
@@ -362,3 +377,50 @@ if st.button(
                 "The Travel Agent could not complete "
                 "the request. Please try again."
             )
+# --------------------------------------------------
+# Itinerary Generator
+# --------------------------------------------------
+
+st.subheader("🗺️ Travel Itinerary Generator")
+
+destination = st.text_input(
+    "Destination",
+    placeholder="Example: Goa",
+    key="itinerary_destination"
+)
+
+days = st.number_input(
+    "Number of days",
+    min_value=1,
+    max_value=14,
+    value=3,
+    step=1,
+    key="itinerary_days"
+)
+
+interests = st.text_input(
+    "Interests",
+    placeholder="Example: beaches, food, sightseeing",
+    key="itinerary_interests"
+)
+
+if st.button(
+    "Generate Itinerary",
+    key="generate_itinerary_button"
+):
+
+    if not destination.strip():
+        st.warning("Please enter a destination.")
+
+    else:
+        with st.spinner("Creating your itinerary..."):
+
+            itinerary = generate_itinerary(
+                llm=llm,
+                destination=destination,
+                days=int(days),
+                interests=interests or "general sightseeing"
+            )
+
+        st.markdown("### Your Travel Itinerary")
+        st.markdown(itinerary)
