@@ -9,7 +9,11 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import FAISS
 from langchain.agents import create_agent
 from services.itinerary import generate_itinerary
-from database.db import create_tables, save_search
+from database.db import (
+    create_tables,
+    save_search,
+    get_search_history
+)
 from tools.travel_tools import (
     get_weather,
     web_search,
@@ -367,9 +371,10 @@ if st.button(
 
                 answer_text = response_content
 
-            st.subheader("🤖 Agent Response")
+            st.markdown("### ✈️ Travel Result")
 
-            st.write(answer_text)
+            with st.container(border=True):
+                    st.markdown(answer_text)
 
         except Exception:
 
@@ -382,6 +387,11 @@ if st.button(
 # --------------------------------------------------
 
 st.subheader("🗺️ Travel Itinerary Generator")
+
+st.write(
+    "Enter your trip details and generate a simple "
+    "day-by-day travel plan."
+)
 
 destination = st.text_input(
     "Destination",
@@ -398,9 +408,9 @@ days = st.number_input(
     key="itinerary_days"
 )
 
-interests = st.text_input(
-    "Interests",
-    placeholder="Example: beaches, food, sightseeing",
+interests = st.text_area(
+    "Travel Interests",
+    placeholder="Example: beaches, food, sightseeing, history",
     key="itinerary_interests"
 )
 
@@ -409,18 +419,94 @@ if st.button(
     key="generate_itinerary_button"
 ):
 
-    if not destination.strip():
+    destination = destination.strip()
+    interests = interests.strip()
+
+    if not destination:
+
         st.warning("Please enter a destination.")
 
+    elif len(destination) < 2:
+
+        st.warning("Please enter a valid destination.")
+
+    elif len(destination) > 100:
+
+        st.warning("Destination name is too long.")
+
+    elif len(interests) > 300:
+
+        st.warning(
+            "Please keep travel interests under 300 characters."
+        )
+
     else:
+
         with st.spinner("Creating your itinerary..."):
 
-            itinerary = generate_itinerary(
-                llm=llm,
-                destination=destination,
-                days=int(days),
-                interests=interests or "general sightseeing"
-            )
+            try:
 
-        st.markdown("### Your Travel Itinerary")
-        st.markdown(itinerary)
+                itinerary = generate_itinerary(
+                    llm=llm,
+                    destination=destination,
+                    days=int(days),
+                    interests=interests
+                    if interests
+                    else "general sightseeing"
+                )
+
+                st.markdown("### 📍 Your Travel Itinerary")
+
+                with st.container(border=True):
+                    st.markdown(itinerary)
+
+            except Exception:
+
+                st.error(
+                    "Unable to generate the itinerary. "
+                    "Please try again."
+                )
+# --------------------------------------------------
+# Search History
+# --------------------------------------------------
+
+st.subheader("🕘 Search History")
+
+if st.button("View Search History", key="view_history_button"):
+
+    history = get_search_history()
+
+    if history:
+
+        for row in history:
+
+            search_id = row[0]
+            search_type = row[1]
+            destination = row[2]
+            check_in = row[3]
+            check_out = row[4]
+            adults = row[5]
+            query = row[6]
+            created_at = row[7]
+
+            with st.expander(
+                f"{search_type} - {created_at}"
+            ):
+
+                if query:
+                    st.write("**Query:**", query)
+
+                if destination:
+                    st.write("**Destination:**", destination)
+
+                if check_in:
+                    st.write("**Check-in:**", check_in)
+
+                if check_out:
+                    st.write("**Check-out:**", check_out)
+
+                if adults:
+                    st.write("**Adults:**", adults)
+
+    else:
+        st.info("No search history available.")
