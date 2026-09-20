@@ -52,56 +52,71 @@ def save_search(
     Save a travel search into the database.
     """
 
-    connection = get_connection()
+    connection = None
 
-    cursor = connection.cursor()
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
 
-    cursor.execute(
-        """
-        INSERT INTO search_history
-        (
-            search_type,
-            destination,
-            check_in,
-            check_out,
-            adults,
-            query
+        cursor.execute(
+            """
+            INSERT INTO search_history
+            (
+                search_type,
+                destination,
+                check_in,
+                check_out,
+                adults,
+                query
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                search_type,
+                destination,
+                check_in,
+                check_out,
+                adults,
+                query
+            )
         )
-        VALUES (?, ?, ?, ?, ?, ?)
-        """,
-        (
-            search_type,
-            destination,
-            check_in,
-            check_out,
-            adults,
-            query
-        )
-    )
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+        return True
 
+    except sqlite3.Error as error:
+        print(f"Database error: {error}")
+        return False
+
+    finally:
+        if connection:
+            connection.close()
 
 def get_search_history():
     """
     Return all saved searches.
     """
 
-    connection = get_connection()
+    connection = None
 
-    cursor = connection.cursor()
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
 
-    cursor.execute(
-        """
-        SELECT *
-        FROM search_history
-        ORDER BY created_at DESC
-        """
-    )
+        cursor.execute(
+            """
+            SELECT *
+            FROM search_history
+            ORDER BY created_at DESC
+            """
+        )
 
-    rows = cursor.fetchall()
+        return cursor.fetchall()
 
-    connection.close()
+    except sqlite3.Error as error:
+        print(f"Database error: {error}")
+        return []
 
-    return rows
+    finally:
+        if connection:
+            connection.close()
