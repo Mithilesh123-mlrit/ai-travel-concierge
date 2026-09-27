@@ -145,7 +145,21 @@ def rag_query(query: RAGQuestion):
 @app.get("/api/history")
 def search_history():
     try:
-        history = get_search_history()
+        rows = get_search_history()
+
+        history = [
+            {
+                "id": row[0],
+                "search_type": row[1],
+                "destination": row[2],
+                "check_in": row[3],
+                "check_out": row[4],
+                "adults": row[5],
+                "query": row[6],
+                "created_at": row[7],
+            }
+            for row in rows
+        ]
 
         return {
             "success": True,

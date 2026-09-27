@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Send,
   Plane,
@@ -14,6 +14,7 @@ import {
   generateItinerary,
   uploadTravelPDF,
   askRAGQuestion,
+  getSearchHistory,
 } from "./api";
 import "./App.css";
 
@@ -37,6 +38,27 @@ function App() {
   const [ragLoading, setRagLoading] = useState(false);
   const [ragUploading, setRagUploading] = useState(false);
   const [ragMessage, setRagMessage] = useState("");
+  const [history, setHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  useEffect(() => {
+  const loadHistory = async () => {
+    setHistoryLoading(true);
+
+    try {
+      const result = await getSearchHistory();
+
+      if (result.success) {
+        setHistory(result.history || []);
+      }
+    } catch (error) {
+      setHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  loadHistory();
+}, []);
 
   const handleSend = async () => {
     if (!message.trim() || loading) return;
@@ -440,6 +462,47 @@ function App() {
               <div className="rag-result">
                 <h3>Document Answer</h3>
                 <p>{ragAnswer}</p>
+              </div>
+            )}
+          </div>
+        </section>
+                <section className="history-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">YOUR ACTIVITY</p>
+              <h2>Recent searches</h2>
+            </div>
+          </div>
+
+          <div className="history-card">
+            {historyLoading ? (
+              <div className="history-loading">
+                <Loader2 className="spinner" size={18} />
+                Loading search history...
+              </div>
+            ) : history.length === 0 ? (
+              <p className="history-empty">
+                No searches yet. Start exploring with TravelAI.
+              </p>
+            ) : (
+              <div className="history-list">
+                {history.map((item) => (
+                  <div className="history-item" key={item.id}>
+                    <div>
+                      <span className="history-type">
+                        {item.search_type}
+                      </span>
+
+                      <p>
+                        {item.query || item.destination || "Travel search"}
+                      </p>
+                    </div>
+
+                    <span className="history-date">
+                      {item.created_at}
+                    </span>
+                  </div>
+                ))}
               </div>
             )}
           </div>
