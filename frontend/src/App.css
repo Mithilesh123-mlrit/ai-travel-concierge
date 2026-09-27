@@ -578,21 +578,32 @@ footer {
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  padding: 16px 18px;
+  padding: 18px 20px;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  background: #f8fafc;
+  border-radius: 14px;
+  background: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.history-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
 }
 
 .history-item p {
   margin: 6px 0 0;
   color: #1f2937;
+  line-height: 1.5;
 }
 
 .history-type {
   display: inline-block;
-  font-size: 12px;
-  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #eff6ff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #2563eb;
 }
@@ -605,8 +616,41 @@ footer {
 
 .history-loading,
 .history-empty {
+  padding: 20px 0;
   color: #6b7280;
+  text-align: center;
 }
+
+/* RAG improvements */
+
+.rag-upload {
+  display: flex;
+  align-items: end;
+  gap: 20px;
+}
+
+.rag-upload .form-group {
+  flex: 1;
+}
+
+.rag-upload input[type="file"] {
+  cursor: pointer;
+}
+
+.rag-message {
+  border: 1px solid #bbf7d0;
+}
+
+.rag-result {
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.04);
+}
+
+.rag-result p {
+  margin-bottom: 0;
+  line-height: 1.7;
+}
+
+/* Responsive */
 
 @media (max-width: 700px) {
   .rag-upload {
@@ -626,5 +670,9 @@ footer {
   .history-item {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .history-date {
+    white-space: normal;
   }
 }
