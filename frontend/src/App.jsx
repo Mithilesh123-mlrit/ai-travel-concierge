@@ -12,6 +12,8 @@ import {
 import {
   sendTravelQuery,
   generateItinerary,
+  uploadTravelPDF,
+  askRAGQuestion,
 } from "./api";
 import "./App.css";
 
@@ -26,6 +28,15 @@ function App() {
 
   const [itinerary, setItinerary] = useState("");
   const [itineraryLoading, setItineraryLoading] = useState(false);
+
+  
+
+  const [ragFile, setRagFile] = useState(null);
+  const [ragQuestion, setRagQuestion] = useState("");
+  const [ragAnswer, setRagAnswer] = useState("");
+  const [ragLoading, setRagLoading] = useState(false);
+  const [ragUploading, setRagUploading] = useState(false);
+  const [ragMessage, setRagMessage] = useState("");
 
   const handleSend = async () => {
     if (!message.trim() || loading) return;
@@ -87,6 +98,52 @@ function App() {
       );
     } finally {
       setItineraryLoading(false);
+    }
+  };
+    const handleRAGUpload = async () => {
+    if (!ragFile || ragUploading) return;
+
+    setRagUploading(true);
+    setRagMessage("");
+    setRagAnswer("");
+
+    try {
+      const result = await uploadTravelPDF(ragFile);
+
+      if (result.success) {
+        setRagMessage(
+          `${result.filename} uploaded successfully. ${result.chunks} text chunks created.`
+        );
+      } else {
+        setRagMessage(result.message || "PDF upload failed.");
+      }
+    } catch (error) {
+      setRagMessage(
+        "Unable to upload the PDF. Please make sure the backend is running."
+      );
+    } finally {
+      setRagUploading(false);
+    }
+  };
+
+  const handleRAGQuestion = async () => {
+    if (!ragQuestion.trim() || ragLoading) return;
+
+    setRagLoading(true);
+    setRagAnswer("");
+
+    try {
+      const result = await askRAGQuestion(ragQuestion);
+
+      setRagAnswer(
+        result.answer || "No answer was generated from the document."
+      );
+    } catch (error) {
+      setRagAnswer(
+        "Unable to query the document. Please make sure a PDF has been uploaded."
+      );
+    } finally {
+      setRagLoading(false);
     }
   };
 
@@ -301,6 +358,88 @@ function App() {
                 <div className="itinerary-content">
                   {itinerary}
                 </div>
+              </div>
+            )}
+          </div>
+        </section>
+                <section className="rag-section">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">DOCUMENT INTELLIGENCE</p>
+              <h2>Chat with your travel document</h2>
+            </div>
+          </div>
+
+          <div className="rag-card">
+            <div className="rag-upload">
+              <label className="form-group">
+                <span>Upload Travel PDF</span>
+
+                <input
+                  type="file"
+                  accept=".pdf"
+                  onChange={(event) =>
+                    setRagFile(event.target.files[0] || null)
+                  }
+                />
+              </label>
+
+              <button
+                className="primary-button"
+                onClick={handleRAGUpload}
+                disabled={ragUploading || !ragFile}
+              >
+                {ragUploading ? (
+                  <>
+                    <Loader2 className="spinner" size={18} />
+                    Processing PDF...
+                  </>
+                ) : (
+                  "Upload PDF"
+                )}
+              </button>
+            </div>
+
+            {ragMessage && (
+              <div className="rag-message">
+                {ragMessage}
+              </div>
+            )}
+
+            <div className="rag-question">
+              <label>Ask about your document</label>
+
+              <div className="rag-input-row">
+                <input
+                  value={ragQuestion}
+                  onChange={(event) =>
+                    setRagQuestion(event.target.value)
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      handleRAGQuestion();
+                    }
+                  }}
+                  placeholder="e.g. What are the recommended hotels?"
+                />
+
+                <button
+                  onClick={handleRAGQuestion}
+                  disabled={ragLoading || !ragQuestion.trim()}
+                >
+                  {ragLoading ? (
+                    <Loader2 className="spinner" size={18} />
+                  ) : (
+                    <Send size={18} />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {ragAnswer && (
+              <div className="rag-result">
+                <h3>Document Answer</h3>
+                <p>{ragAnswer}</p>
               </div>
             )}
           </div>

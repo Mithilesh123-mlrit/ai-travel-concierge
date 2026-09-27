@@ -12,11 +12,19 @@ from backend.app.database.db import (
 )
 from backend.app.services.itinerary import generate_itinerary
 from backend.app.agents.travel_agent import travel_agent, llm
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(
     title="AI Travel Concierge API",
     description="Backend API for the AI Travel Concierge",
     version="1.0.0",
+)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 create_tables()
 
