@@ -1,5 +1,4 @@
-from services.travel_api import search_hotels
-
+from backend.app.services.hotel_api import search_hotels
 
 print("----- HOTEL SEARCH TEST -----")
 

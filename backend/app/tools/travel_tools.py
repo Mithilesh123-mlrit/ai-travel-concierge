@@ -1,5 +1,5 @@
 import requests
-from backend.app.services.travel_api import search_hotels
+from backend.app.services.hotel_api import search_hotels
 from langchain_core.tools import tool
 from ddgs import DDGS
 

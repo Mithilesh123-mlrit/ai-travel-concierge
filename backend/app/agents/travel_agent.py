@@ -3,8 +3,7 @@ import os
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.prebuilt import create_react_agent
-from backend.app.tools.currency_tool import convert_currency
-
+from backend.app.tools.currency import convert_currency
 from backend.app.tools.travel_tools import (
     get_weather,
     web_search,

@@ -1,4 +1,4 @@
-from database.db import (
+from backend.app.database.database import (
     create_tables,
     save_search,
     get_search_history

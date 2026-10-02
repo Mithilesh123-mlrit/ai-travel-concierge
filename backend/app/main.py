@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi import FastAPI, File, UploadFile
-from backend.app.rag.rag_service import (
+from backend.app.rag.rag import (
     process_pdf,
     ask_rag_question,
 )
-from backend.app.database.db import (
+from backend.app.database.database import (
     create_tables,
     save_search,
     get_search_history,
