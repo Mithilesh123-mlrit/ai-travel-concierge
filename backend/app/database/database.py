@@ -1,8 +1,8 @@
+import os
 import sqlite3
-from pathlib import Path
 
-
-DB_PATH = Path("database/travel_concierge.db")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, "travel_history.db")
 
 
 def get_connection():
