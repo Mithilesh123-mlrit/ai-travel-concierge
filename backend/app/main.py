@@ -13,6 +13,9 @@ from backend.app.database.database import (
 from backend.app.services.itinerary import generate_itinerary
 from backend.app.agents.travel_agent import travel_agent, llm
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
+from langchain_google_genai.chat_models import GoogleRateLimitError
+import asyncio
 
 app = FastAPI(
     title="AI Travel Concierge API",
@@ -50,7 +53,9 @@ def health_check():
 
 @app.post("/api/travel")
 def travel_query(query: TravelQuery):
-    result = travel_agent.invoke(
+    try:
+
+        result = travel_agent.invoke(
         {
             "messages": [
                 {
@@ -58,8 +63,17 @@ def travel_query(query: TravelQuery):
                     "content": query.question,
                 }
             ]
-        }
+        },
+        config={"recursion_limit": 15},
     )
+
+    except GoogleRateLimitError:
+        raise HTTPException(
+        status_code=429,
+        detail="AI service quota has been reached. Please try again later.",
+    )
+
+
 
     messages = result.get("messages", [])
 
@@ -99,7 +113,7 @@ async def upload_document(file: UploadFile = File(...)):
     try:
         file_bytes = await file.read()
 
-        result = process_pdf(file_bytes)
+        result = await asyncio.to_thread(process_pdf, file_bytes)
 
         rag_vector_store = result["vector_store"]
 
