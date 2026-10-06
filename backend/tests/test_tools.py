@@ -1,4 +1,4 @@
-from tools.travel_tools import get_weather, web_search
+from backend.app.tools.travel_tools import get_weather, web_search
 
 
 # --------------------------------------------------
